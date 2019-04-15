@@ -3,6 +3,8 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Consumer;
 
 import uk.ac.bris.cs.scotlandyard.ai.ManagedAI;
@@ -12,8 +14,8 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Player;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYardView;
 
-@ManagedAI("JJ-MRX")
-public class MyAI implements PlayerFactory {
+@ManagedAI("JJ-MrX")
+public class JJMrX implements PlayerFactory {
 	private MyPlayer player;
 
 	@Override
@@ -25,7 +27,7 @@ public class MyAI implements PlayerFactory {
 	}
 
 	// TODO A sample player that selects a random move
-	private static class MyPlayer implements Player {
+	private static class MyPlayer implements Player{
 
 		private final Random random = new Random();
 
@@ -33,9 +35,23 @@ public class MyAI implements PlayerFactory {
 		public void makeMove(ScotlandYardView view, int location, Set<Move> moves,
 				Consumer<Move> callback) {
 			// TODO do something interesting here; find the best move
-			// picks a random move
-			callback.accept(new ArrayList<>(moves).get(random.nextInt(moves.size())));
+			// // picks a random move
+			// callback.accept(new ArrayList<>(moves).get(random.nextInt(moves.size())));
 
+			Double maxScore = 0.0;
+			ArrayList<Move> movesArray = new ArrayList<>(moves);
+			Move bestMove = movesArray.get(0);
+			for (Move m : movesArray) {
+				if (moveScore(view, m) > maxScore) {
+					bestMove = m;
+				}
+			}
+			callback.accept(bestMove);
+
+		}
+
+		public Double moveScore(ScotlandYardView view, Move move) {
+			return 0.1;
 		}
 	}
 }
