@@ -12,14 +12,16 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Player;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYardView;
 
-// TODO name the AI
-@ManagedAI("Name me!")
+@ManagedAI("JJ-MRX")
 public class MyAI implements PlayerFactory {
+	private MyPlayer player;
 
-	// TODO create a new player here
 	@Override
 	public Player createPlayer(Colour colour) {
-		return new MyPlayer();
+		if (colour.isDetective()) {
+			throw new IllegalArgumentException("AI is for MrX only");
+		}
+		return player = new MyPlayer();
 	}
 
 	// TODO A sample player that selects a random move
