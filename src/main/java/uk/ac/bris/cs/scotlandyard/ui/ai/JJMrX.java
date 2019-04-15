@@ -11,8 +11,15 @@ import uk.ac.bris.cs.scotlandyard.ai.ManagedAI;
 import uk.ac.bris.cs.scotlandyard.ai.PlayerFactory;
 import uk.ac.bris.cs.scotlandyard.model.Colour;
 import uk.ac.bris.cs.scotlandyard.model.Move;
+import uk.ac.bris.cs.scotlandyard.model.DoubleMove;
+import uk.ac.bris.cs.scotlandyard.model.TicketMove;
+import uk.ac.bris.cs.scotlandyard.model.PassMove;
 import uk.ac.bris.cs.scotlandyard.model.Player;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYardView;
+import uk.ac.bris.cs.scotlandyard.model.Transport;
+
+import uk.ac.bris.cs.gamekit.graph.Edge;
+import uk.ac.bris.cs.gamekit.graph.Graph;
 
 @ManagedAI("JJ-MrX")
 public class JJMrX implements PlayerFactory {
@@ -35,8 +42,6 @@ public class JJMrX implements PlayerFactory {
 		public void makeMove(ScotlandYardView view, int location, Set<Move> moves,
 				Consumer<Move> callback) {
 			// TODO do something interesting here; find the best move
-			// // picks a random move
-			// callback.accept(new ArrayList<>(moves).get(random.nextInt(moves.size())));
 
 			Double maxScore = 0.0;
 			ArrayList<Move> movesArray = new ArrayList<>(moves);
@@ -51,6 +56,13 @@ public class JJMrX implements PlayerFactory {
 		}
 
 		public Double moveScore(ScotlandYardView view, Move move) {
+			if (move.getClass() == DoubleMove.class) {
+				return moveScore(view, ((DoubleMove) move).secondMove());
+			}
+			else if (move.getClass() == TicketMove.class) {
+				Graph<Integer,Transport> graph = view.getGraph();
+				return (double) graph.getEdgesFrom(graph.getNode(((TicketMove) move).destination())).size();
+			}
 			return 0.1;
 		}
 	}
