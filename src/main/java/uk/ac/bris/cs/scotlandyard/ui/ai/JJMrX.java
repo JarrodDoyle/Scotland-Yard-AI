@@ -51,17 +51,23 @@ public class JJMrX implements PlayerFactory {
 			ArrayList<Move> movesArray = new ArrayList<>(moves);
 			Move bestMove = movesArray.get(0);
 			for (Move m : movesArray) {
-				if (moveScore(view, m) > maxScore) {
+				if (moveScore(view, m, 0.0) > maxScore) {
 					bestMove = m;
 				}
 			}
 			callback.accept(bestMove);
-
+			for (Colour colour : view.getPlayers()) {
+				if (colour.isDetective()) {
+					int distance = dijkstra(view, location, view.getPlayerLocation(colour).get());
+					System.out.println("Distance to " + colour.toString() + ": " + Integer.toString(distance));
+				}
+			}
 		}
 
-		public Double moveScore(ScotlandYardView view, Move move) {
+		public Double moveScore(ScotlandYardView view, Move move, Double score) {
 			if (move.getClass() == DoubleMove.class) {
-				return moveScore(view, ((DoubleMove) move).secondMove());
+				// Do something about lower double move scores for low danger
+				score += moveScore(view, ((DoubleMove) move).secondMove(), score);
 			}
 			else if (move.getClass() == TicketMove.class) {
 				List<Integer> distances = new ArrayList<Integer>();
@@ -71,11 +77,26 @@ public class JJMrX implements PlayerFactory {
 					}
 				}
 				Collections.sort(distances);
-				return (double) distances.get(0);
+
+				double distanceScore = 0.0;
+				int size = distances.size();
+				for (int i = 0; i < size; i++) {
+					distanceScore += ((double) distances.get(i)) * (1 - i / size);
+				}
+
+				score += (double) distances.get(0);
+				/*
+				Things that could be taken into account:
+				- ~Distance from detectives (lesser effect for further ones?)~
+				- How many moves can be made from the new location
+				- How many potential places player can be based on previous location and tickets used
+				- Save secret/double moves for when Mr.X is in a dangerous position?
+				*/
 			}
-			return 0.0;
+			return score;
 		}
 
+		// Tested, definitely works and I'm very surprised it worked first time
 		public Integer dijkstra(ScotlandYardView view, int location, int targetID) {
 			Graph<Integer,Transport> graph = view.getGraph();
 			Node<Integer> target = graph.getNode(targetID);
