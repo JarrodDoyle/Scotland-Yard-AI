@@ -56,12 +56,6 @@ public class JJMrX implements PlayerFactory {
 				}
 			}
 			callback.accept(bestMove);
-			for (Colour colour : view.getPlayers()) {
-				if (colour.isDetective()) {
-					int distance = dijkstra(view, location, view.getPlayerLocation(colour).get());
-					System.out.println("Distance to " + colour.toString() + ": " + Integer.toString(distance));
-				}
-			}
 		}
 
 		public Double moveScore(ScotlandYardView view, Move move, Double score) {
@@ -84,7 +78,7 @@ public class JJMrX implements PlayerFactory {
 					distanceScore += ((double) distances.get(i)) * (1 - i / size);
 				}
 
-				score += (double) distances.get(0);
+				score += distanceScore;
 				/*
 				Things that could be taken into account:
 				- ~Distance from detectives (lesser effect for further ones?)~
