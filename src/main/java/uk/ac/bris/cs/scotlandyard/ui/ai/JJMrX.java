@@ -51,43 +51,63 @@ public class JJMrX implements PlayerFactory {
 			ArrayList<Move> movesArray = new ArrayList<>(moves);
 			Move bestMove = movesArray.get(0);
 			for (Move m : movesArray) {
-				if (moveScore(view, m, 0.0) > maxScore) {
+				if (moveScore(view, m) > maxScore) {
 					bestMove = m;
 				}
 			}
 			callback.accept(bestMove);
 		}
 
-		public Double moveScore(ScotlandYardView view, Move move, Double score) {
+		public Double moveScore(ScotlandYardView view, Move move) {
+			/*
+			Things that could be taken into account:
+			- ~Distance from detectives (lesser effect for further ones?)~
+			- How many moves can be made from the new location
+			- How many potential places player can be based on previous location and tickets used
+			- Save secret/double moves for when Mr.X is in a dangerous position?
+			*/
+			double score = 0;
 			if (move.getClass() == DoubleMove.class) {
-				// Do something about lower double move scores for low danger
-				score += moveScore(view, ((DoubleMove) move).secondMove(), score);
+				score += moveScore(view, ((DoubleMove) move).secondMove());
 			}
 			else if (move.getClass() == TicketMove.class) {
-				List<Integer> distances = new ArrayList<Integer>();
-				for (Colour colour : view.getPlayers()) {
-					if (colour.isDetective()) {
-						distances.add(dijkstra(view, ((TicketMove) move).destination(), view.getPlayerLocation(colour).get()));
-					}
-				}
-				Collections.sort(distances);
-
-				double distanceScore = 0.0;
-				int size = distances.size();
-				for (int i = 0; i < size; i++) {
-					distanceScore += ((double) distances.get(i)) * (1 - i / size);
-				}
-
-				score += distanceScore;
-				/*
-				Things that could be taken into account:
-				- ~Distance from detectives (lesser effect for further ones?)~
-				- How many moves can be made from the new location
-				- How many potential places player can be based on previous location and tickets used
-				- Save secret/double moves for when Mr.X is in a dangerous position?
-				*/
+				score += distanceValue(view, move);
 			}
 			return score;
+		}
+
+		private Double distanceValue(ScotlandYardView view, Move move) {
+			List<Integer> distances = new ArrayList<Integer>();
+			for (Colour colour : view.getPlayers()) {
+				if (colour.isDetective()) {
+					distances.add(dijkstra(view, ((TicketMove) move).destination(), view.getPlayerLocation(colour).get()));
+				}
+			}
+			Collections.sort(distances);
+
+			double distanceScore = 0.0;
+			int size = distances.size();
+			for (int i = 0; i < size; i++) {
+				distanceScore += ((double) distances.get(i)) * (1 - i / size);
+			}
+			return distanceScore;
+		}
+
+		private Double movesValue(ScotlandYardView view, move) {
+			// Generate set of valid moves at new position
+			// Multiply length of move set by 0.2(?)
+			// Return
+		}
+
+		private Double potentialPositionValue(ScotlandYardView view, move) {
+			// Generate set of potential positions given previously known position
+			// and the tickets used since then
+			// Return length of position set
+		}
+
+		private Double dangerValue(ScotlandYardView view, move) {
+			// Decide whether MrX is currently in a dangerous position
+			// If not assign a low value, otherwise give a high one
 		}
 
 		// Tested, definitely works and I'm very surprised it worked first time
