@@ -20,6 +20,7 @@ import uk.ac.bris.cs.scotlandyard.model.PassMove;
 import uk.ac.bris.cs.scotlandyard.model.Player;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYardView;
 import uk.ac.bris.cs.scotlandyard.model.Transport;
+import uk.ac.bris.cs.scotlandyard.model.Ticket;
 
 import uk.ac.bris.cs.gamekit.graph.Edge;
 import uk.ac.bris.cs.gamekit.graph.Node;
@@ -40,7 +41,8 @@ public class JJMrX implements PlayerFactory {
 	// TODO A sample player that selects a random move
 	private static class MyPlayer implements Player{
 
-		private final Random random = new Random();
+		// private final Random random = new Random();
+		private List<Ticket> ticketsUsed = new ArrayList<>();
 
 		@Override
 		public void makeMove(ScotlandYardView view, int location, Set<Move> moves,
@@ -56,6 +58,37 @@ public class JJMrX implements PlayerFactory {
 				}
 			}
 			callback.accept(bestMove);
+			System.out.println("\nPositions: " + potentialPositionsValue(view, bestMove).toString());
+			ticketsUsed = updateTicketsUsed(view, bestMove, ticketsUsed);
+			System.out.println("CurrentRound: " + view.getCurrentRound());
+			System.out.println(ticketsUsed.toString());
+		}
+
+		public List<Ticket> updateTicketsUsed(ScotlandYardView view, Move move, List<Ticket> ticketsUsed) {
+			List<Ticket> tickets = new ArrayList<>();
+			tickets.addAll(ticketsUsed);
+			if (move.getClass() == DoubleMove.class) {
+				if (view.getRounds().get(view.getCurrentRound() + 1)) {
+					tickets.clear();
+				}
+				else if (view.getRounds().get(view.getCurrentRound())) {
+					tickets.clear();
+					tickets.add(((DoubleMove) move).secondMove().ticket());
+				}
+				else {
+					tickets.add(((DoubleMove) move).firstMove().ticket());
+					tickets.add(((DoubleMove) move).secondMove().ticket());
+				}
+			}
+			else if (move.getClass() == TicketMove.class) {
+				if (view.getRounds().get(view.getCurrentRound())) {
+					tickets.clear();
+				}
+				else {
+					tickets.add(((TicketMove) move).ticket());
+				}
+			}
+			return tickets;
 		}
 
 		public Double moveScore(ScotlandYardView view, Move move) {
@@ -72,12 +105,13 @@ public class JJMrX implements PlayerFactory {
 			}
 			else if (move.getClass() == TicketMove.class) {
 				score += distanceValue(view, move);
+				score *= potentialPositionsValue(view, move);
 			}
 			return score;
 		}
 
 		private Double distanceValue(ScotlandYardView view, Move move) {
-			List<Integer> distances = new ArrayList<Integer>();
+			List<Integer> distances = new ArrayList<>();
 			for (Colour colour : view.getPlayers()) {
 				if (colour.isDetective()) {
 					distances.add(dijkstra(view, ((TicketMove) move).destination(), view.getPlayerLocation(colour).get()));
@@ -93,30 +127,54 @@ public class JJMrX implements PlayerFactory {
 			return distanceScore;
 		}
 
-		private Double movesValue(ScotlandYardView view, move) {
+		private Double movesValue(ScotlandYardView view, Move move) {
 			// Generate set of valid moves at new position
 			// Multiply length of move set by 0.2(?)
 			// Return
+			return 0.0;
 		}
 
-		private Double potentialPositionValue(ScotlandYardView view, move) {
-			// Generate set of potential positions given previously known position
-			// and the tickets used since then
-			// Return length of position set
+		private Double potentialPositionsValue(ScotlandYardView view, Move move) {
+			// POSITION BEING USED IS CURRENTLY NOT ACCURATE.
+			// MRX POSITION NOT UPDATED
+			// TODO: make mrx location correct
+			int location = view.getPlayerLocation(view.getCurrentPlayer()).get();
+			if (location != 0) {
+				Set<Integer> positions = new HashSet<>();
+				Node<Integer> node = view.getGraph().getNode(location);
+				possiblePositions(view, positions, node, updateTicketsUsed(view, move, ticketsUsed));
+				// possiblePositions(view, positions, node, ticketsUsed);
+				return (double) positions.size();
+			}
+			return 1.0;
 		}
 
-		private Double dangerValue(ScotlandYardView view, move) {
+		private static void possiblePositions(ScotlandYardView view, Set<Integer> positions, Node<Integer> next, List<Ticket> path) {
+			if (path.isEmpty()) {
+				positions.add(next.value());
+			}
+			else {
+				for (Edge<Integer,Transport> edge : view.getGraph().getEdgesFrom(next)) {
+					if (Ticket.fromTransport(edge.data()) == path.get(0)) {
+						possiblePositions(view, positions, edge.destination(), path.subList(1, path.size()));
+					}
+				}
+			}
+		}
+
+		private Double dangerValue(ScotlandYardView view, Move move) {
 			// Decide whether MrX is currently in a dangerous position
 			// If not assign a low value, otherwise give a high one
+			return 0.0;
 		}
 
 		// Tested, definitely works and I'm very surprised it worked first time
 		public Integer dijkstra(ScotlandYardView view, int location, int targetID) {
 			Graph<Integer,Transport> graph = view.getGraph();
 			Node<Integer> target = graph.getNode(targetID);
-			Set<Node<Integer>> unvisitedNodes = new HashSet<Node<Integer>>(graph.getNodes());
-			Map<Node<Integer>,Integer> distances = new HashMap<Node<Integer>,Integer>();
-			Map<Node<Integer>,Node<Integer>> previousNodes = new HashMap<Node<Integer>,Node<Integer>>();
+			Set<Node<Integer>> unvisitedNodes = new HashSet<>(graph.getNodes());
+			Map<Node<Integer>,Integer> distances = new HashMap<>();
+			Map<Node<Integer>,Node<Integer>> previousNodes = new HashMap<>();
 			for (Node<Integer> node : unvisitedNodes) {
 				distances.put(node, -1);
 				previousNodes.put(node, null);
