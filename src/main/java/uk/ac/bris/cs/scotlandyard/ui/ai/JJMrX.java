@@ -113,12 +113,13 @@ public class JJMrX implements PlayerFactory {
 			Things that could be taken into account:
 			- ~Distance from detectives (lesser effect for further ones?)~
 			- How many moves can be made from the new location
-			- How many potential places player can be based on previous location and tickets used
+			- ~How many potential places player can be based on previous location and tickets used~
 			- Save secret/double moves for when Mr.X is in a dangerous position?
 			*/
 			double score = 0;
 			if (move.getClass() == DoubleMove.class) {
-				score += moveScore(view, ((DoubleMove) move).secondMove());
+				score += distanceValue(view, ((DoubleMove) move).secondMove());
+				score += potentialPositionsValue(view, move);
 			}
 			else if (move.getClass() == TicketMove.class) {
 				score += distanceValue(view, move);
