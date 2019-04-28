@@ -165,13 +165,12 @@ public class JJMrX implements PlayerFactory {
 		}
 
 		private static void possiblePositions(ScotlandYardView view, Set<Integer> positions, Node<Integer> next, List<Ticket> path) {
-			// TODO: fix break when using secret tickets
 			if (path.isEmpty()) {
 				positions.add(next.value());
 			}
 			else {
 				for (Edge<Integer,Transport> edge : view.getGraph().getEdgesFrom(next)) {
-					if (Ticket.fromTransport(edge.data()) == path.get(0)) {
+					if (Ticket.fromTransport(edge.data()) == path.get(0) || path.get(0) == Ticket.SECRET) {
 						possiblePositions(view, positions, edge.destination(), path.subList(1, path.size()));
 					}
 				}
