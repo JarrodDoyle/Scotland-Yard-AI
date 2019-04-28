@@ -91,6 +91,23 @@ public class JJMrX implements PlayerFactory {
 			return tickets;
 		}
 
+		public int updatePosition(ScotlandYardView view, Move move, int position) {
+			if (move.getClass() == DoubleMove.class) {
+				if (view.getRounds().get(view.getCurrentRound() + 1)) {
+					position = ((DoubleMove) move).secondMove().destination();
+				}
+				else if (view.getRounds().get(view.getCurrentRound())) {
+					position = ((DoubleMove) move).firstMove().destination();
+				}
+			}
+			else if (move.getClass() == TicketMove.class) {
+				if (view.getRounds().get(view.getCurrentRound())) {
+					position = ((TicketMove) move).destination();
+				}
+			}
+			return position;
+		}
+
 		public Double moveScore(ScotlandYardView view, Move move) {
 			/*
 			Things that could be taken into account:
@@ -135,21 +152,20 @@ public class JJMrX implements PlayerFactory {
 		}
 
 		private Double potentialPositionsValue(ScotlandYardView view, Move move) {
-			// POSITION BEING USED IS CURRENTLY NOT ACCURATE.
-			// MRX POSITION NOT UPDATED
-			// TODO: make mrx location correct
+			// Accurate position now being used.
 			int location = view.getPlayerLocation(view.getCurrentPlayer()).get();
+			location = updatePosition(view, move, location);
 			if (location != 0) {
 				Set<Integer> positions = new HashSet<>();
 				Node<Integer> node = view.getGraph().getNode(location);
 				possiblePositions(view, positions, node, updateTicketsUsed(view, move, ticketsUsed));
-				// possiblePositions(view, positions, node, ticketsUsed);
 				return (double) positions.size();
 			}
 			return 1.0;
 		}
 
 		private static void possiblePositions(ScotlandYardView view, Set<Integer> positions, Node<Integer> next, List<Ticket> path) {
+			// TODO: fix break when using secret tickets
 			if (path.isEmpty()) {
 				positions.add(next.value());
 			}
