@@ -38,16 +38,13 @@ public class JJMrX implements PlayerFactory {
 		return player = new MyPlayer();
 	}
 
-	// TODO A sample player that selects a random move
 	private static class MyPlayer implements Player{
 
-		// private final Random random = new Random();
 		private List<Ticket> ticketsUsed = new ArrayList<>();
 
 		@Override
 		public void makeMove(ScotlandYardView view, int location, Set<Move> moves,
 				Consumer<Move> callback) {
-			// TODO do something interesting here; find the best move
 
 			Double maxScore = 0.0;
 			ArrayList<Move> movesArray = new ArrayList<>(moves);
@@ -58,10 +55,7 @@ public class JJMrX implements PlayerFactory {
 				}
 			}
 			callback.accept(bestMove);
-			System.out.println("\nPositions: " + potentialPositionsValue(view, bestMove).toString());
 			ticketsUsed = updateTicketsUsed(view, bestMove, ticketsUsed);
-			System.out.println("CurrentRound: " + view.getCurrentRound());
-			System.out.println(ticketsUsed.toString());
 		}
 
 		public List<Ticket> updateTicketsUsed(ScotlandYardView view, Move move, List<Ticket> ticketsUsed) {
@@ -109,13 +103,6 @@ public class JJMrX implements PlayerFactory {
 		}
 
 		public Double moveScore(ScotlandYardView view, Move move) {
-			/*
-			Things that could be taken into account:
-			- ~Distance from detectives (lesser effect for further ones?)~
-			- How many moves can be made from the new location
-			- ~How many potential places player can be based on previous location and tickets used~
-			- Save secret/double moves for when Mr.X is in a dangerous position?
-			*/
 			double score = 0;
 			if (move.getClass() == DoubleMove.class) {
 				score += distanceValue(view, ((DoubleMove) move).secondMove());
@@ -145,13 +132,6 @@ public class JJMrX implements PlayerFactory {
 			return distanceScore;
 		}
 
-		private Double movesValue(ScotlandYardView view, Move move) {
-			// Generate set of valid moves at new position
-			// Multiply length of move set by 0.2(?)
-			// Return
-			return 0.0;
-		}
-
 		private Double potentialPositionsValue(ScotlandYardView view, Move move) {
 			// Accurate position now being used.
 			int location = view.getPlayerLocation(view.getCurrentPlayer()).get();
@@ -176,12 +156,6 @@ public class JJMrX implements PlayerFactory {
 					}
 				}
 			}
-		}
-
-		private Double dangerValue(ScotlandYardView view, Move move) {
-			// Decide whether MrX is currently in a dangerous position
-			// If not assign a low value, otherwise give a high one
-			return 0.0;
 		}
 
 		// Tested, definitely works and I'm very surprised it worked first time
