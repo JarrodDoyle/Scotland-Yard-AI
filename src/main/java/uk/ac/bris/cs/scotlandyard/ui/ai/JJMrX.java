@@ -168,7 +168,7 @@ public class JJMrX implements PlayerFactory {
 				Set<Integer> positions = new HashSet<>();
 				Node<Integer> node = view.getGraph().getNode(location);
 				possiblePositions(view, positions, node, updateTicketsUsed(view, move, ticketsUsed));
-				return (double) positions.size();
+				return (positions.size() > 4) ? 5.0 : (double) positions.size();
 			}
 			return 1.0;
 		}
