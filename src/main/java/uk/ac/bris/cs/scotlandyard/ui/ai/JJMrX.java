@@ -203,16 +203,24 @@ public class JJMrX implements PlayerFactory {
 			Set<Node<Integer>> unvisitedNodes = new HashSet<>(graph.getNodes());
 			Map<Node<Integer>,Integer> distances = new HashMap<>();
 			Map<Node<Integer>,Node<Integer>> previousNodes = new HashMap<>();
+			// For each element in the set of unvisited nodes (all nodes at this time)
+			// set the distance to that node to be -1 (uncalculated) and
+			// set the previous node in the shortest path to the current node to be null
 			for (Node<Integer> node : unvisitedNodes) {
 				distances.put(node, -1);
 				previousNodes.put(node, null);
 			}
+			// Update the distance map to for the starting position to be 0
 			distances.put(graph.getNode(location), 0);
 			Node<Integer> currentNode;
 			int minDistance;
+			// Carry on running the algorithm until all nodes have been visited
 			while (unvisitedNodes.size() > 0) {
 				minDistance = -1;
 				currentNode = null;
+
+				// Loop over the set of unvisited nodes and select the one with
+				// the shortest distance to it. Remove this node from the set.
 				for (Node<Integer> node : unvisitedNodes) {
 					int  distance = distances.get(node);
 					if (distance >= 0 && (minDistance < 0 || distance < minDistance)) {
@@ -225,10 +233,16 @@ public class JJMrX implements PlayerFactory {
 				}
 				unvisitedNodes.remove(currentNode);
 
+				// If the node selected is the target, shortest path has been found
+				// and the algorithm can break early.
 				if (currentNode.equals(target)) {
 					break;
 				}
 
+				// Otherwise if the target hasn't yet been found we must loop
+				// over the edges from the current node that lead to an unvisited
+				// node. For each of these edges, see if they allow a shorter path
+				// to their destination, if they do then update the distance map.
 				for (Edge<Integer,Transport> edge : graph.getEdgesFrom(currentNode)) {
 					Node<Integer> destination = edge.destination();
 					if (unvisitedNodes.contains(destination)) {
